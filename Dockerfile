@@ -1,7 +1,7 @@
-# 1. Usa la versión de PHP que tengas en tu computadora (ej: php:8.1-apache, php:8.2-apache, php:8.3-apache)
+# 1. Base oficial de PHP con Apache
 FROM php:8.2-apache
 
-# 2. Instalar TODAS las extensiones comunes que requiere Laravel y sus paquetes asociados
+# 2. Instalar herramientas del sistema y librerías necesarias
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -16,24 +16,28 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql gd zip xml mbstring bcmath
 
-# 3. Habilitar el módulo rewrite de Apache
+# 3. Habilitar reescritura de rutas en Apache
 RUN a2enmod rewrite
 
-# 4. Cambiar la raíz de Apache a la carpeta /public de Laravel
+# 4. Apuntar la raíz de Apache a la carpeta /public de Laravel
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# 5. Instalar Composer de forma oficial
+# 5. Descargar Composer oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Permite ejecutar Composer sin restricciones como superusuario dentro de Docker
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 WORKDIR /var/www/html
 COPY . .
 
-# 6. MODIFICACIÓN CRUCIAL: Añadimos --ignore-platform-reqs para evitar bloqueos de versión en producción
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+# 6. SOLUCIÓN CRUCIAL: Añadimos --no-scripts para congelar la ejecución de Laravel
+# hasta que el servidor encienda con sus variables de entorno reales.
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
 
-# 7. Asignar permisos correctos a las carpetas de almacenamiento
+# 7. Permisos requeridos para las carpetas internas de escritura
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 80
