@@ -25,25 +25,25 @@
                 @forelse ($classifications as $classification)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 row-active">
                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{$classification->type}}
+                            {{ $classification->type }}
                         </td>
                         <td class="px-6 py-4">
-                            {{$classification->name}}
+                            {{ $classification->name }}
                         </td>
                         <td class="px-6 py-4">
-                            {{$classification->brand}}
+                            {{ $classification->brand }}
                         </td>
                         <td class="px-6 py-4">
-                            {{$classification->model}}
+                            {{ $classification->model }}
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex space-x-2 justify-center">
                                 @can('admin.classifications.edit')
-                                    <flux:button href="{{route('admin.classifications.edit', $classification)}}" icon=\"pencil\" class=\"btn-outline-orange text-xs\">Editar</flux:button>
+                                    <flux:button href="{{ route('admin.classifications.edit', $classification) }}" icon="pencil" class="btn-outline-orange text-xs">Editar</flux:button>
                                 @endcan
 
                                 @can('admin.classifications.destroy')
-                                    <form action="{{route('admin.classifications.destroy', $classification)}}" method="POST" class="delete-form">
+                                    <form action="{{ route('admin.classifications.destroy', $classification) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <flux:button type="submit" icon="trash" class="btn-outline-red text-xs">Eliminar</flux:button>
@@ -64,12 +64,11 @@
     </div>
 
     <div class="mt-4">
-        {{$classifications->links()}}
+        {{ $classifications->links() }}
     </div>
 
     @push('js')
         <script>
-            // Aseguramos que el DOM esté listo antes de buscar los formularios
             document.addEventListener('DOMContentLoaded', () => {
                 const forms = document.querySelectorAll('.delete-form');
 
