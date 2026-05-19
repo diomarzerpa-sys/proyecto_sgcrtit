@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql gd zip xml mbstring bcmath
 
-# 3. INSTALAR NODE.JS Y NPM (Crucial para compilar Vite)
+# 3. INSTALAR NODE.JS Y NPM (Comando oficial actualizado de NodeSource)
 RUN curl -fsSL https://nodesource.com | bash - \
     && apt-get install -y nodejs
 
