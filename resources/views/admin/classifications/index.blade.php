@@ -14,61 +14,51 @@
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th scope="col" class="px-6 py-3">
-                        Tipo
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        Clasificación
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        Marca
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        Modelo
-                    </th>
-                    <th scope="col" class="px-6 py-3" width="20px">
-                        Opciones
-                    </th>
+                    <th scope="col" class="px-6 py-3">Tipo</th>
+                    <th scope="col" class="px-6 py-3">Clasificación</th>
+                    <th scope="col" class="px-6 py-3">Marca</th>
+                    <th scope="col" class="px-6 py-3">Modelo</th>
+                    <th scope="col" class="px-6 py-3 text-center" width="20px">Acción</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($classifications as $classification)
-                    <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700 border-gray-200">
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                @forelse ($classifications as $classification)
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 row-active">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{$classification->type}}
-                        </th>
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{$classification->name}}
-                        </th>
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{$classification->brand}}
-                        </th>
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{$classification->model}}
-                        </th>
+                        </td>
                         <td class="px-6 py-4">
-                            <div class="flex space-x-2">
-
+                            {{$classification->name}}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{$classification->brand}}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{$classification->model}}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex space-x-2 justify-center">
                                 @can('admin.classifications.edit')
-                                    <flux:button href="{{route('admin.classifications.edit',$classification)}}" icon="pencil" class="btn-outline-yellow text-xs">Edit</flux:button>
+                                    <flux:button href="{{route('admin.classifications.edit', $classification)}}" icon=\"pencil\" class=\"btn-outline-orange text-xs\">Editar</flux:button>
                                 @endcan
 
                                 @can('admin.classifications.destroy')
-                                    <form class="delete-form" action="{{route('admin.classifications.destroy', $classification)}}" method="POST">
-                                        
+                                    <form action="{{route('admin.classifications.destroy', $classification)}}" method="POST" class="delete-form">
                                         @csrf
-
                                         @method('DELETE')
-
                                         <flux:button type="submit" icon="trash" class="btn-outline-red text-xs">Eliminar</flux:button>
                                     </form>
                                 @endcan
-                            
                             </div>
                         </td>
                     </tr>
-                @endforeach
-                
+                @empty
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                            No se encontraron clasificaciones registradas.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -79,25 +69,28 @@
 
     @push('js')
         <script>
-            forms = document.querySelectorAll('.delete-form');
+            // Aseguramos que el DOM esté listo antes de buscar los formularios
+            document.addEventListener('DOMContentLoaded', () => {
+                const forms = document.querySelectorAll('.delete-form');
 
-            forms.forEach(form => {
-                form.addEventListener('submit', (e) => {
-                    e.preventDefault();
+                forms.forEach(form => {
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
 
-                    Swal.fire({
-                        title: "¿Estas Seguro?",
-                        text: "¡Vas a Eliminar un tipo de clasificacion!",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#3085d6",
-                        cancelButtonColor: "#d33",
-                        confirmButtonText: "Si, Eliminar!",
-                        cancelButtonText: "Cancelar"
+                        Swal.fire({
+                            title: "¿Estás Seguro?",
+                            text: "¡Vas a Eliminar un tipo de clasificación!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Sí, Eliminar!",
+                            cancelButtonText: "Cancelar"
                         }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
                     });
                 });
             });
