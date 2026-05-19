@@ -81,48 +81,47 @@ class UserController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, User $user)
-    {
-        $rules = [
-            'name' => 'required|string|min:3|max:250',
-            'email' => 'required|string|lowercase|email|max:255|unique:users,email,' . $user->id,
-            'roles' => 'required|exists:roles,id', // 'nullable' es redundante si 'required' está presente para un array
-        ];
+{
+    $rules = [
+        'name' => 'required|string|min:3|max:250',
+        'email' => 'required|string|lowercase|email|max:255|unique:users,email,' . $user->id,
+        'roles' => 'required|exists:roles,id', 
+    ];
 
-        // Lógica condicional para la contraseña
-        if ($request->filled('password') || $request->filled('password_confirmation')) {
-            // Si al menos uno de los campos de contraseña está relleno, validamos ambos
-            $rules['password'] = 'required|string|min:8|confirmed';
-            $rules['password_confirmation'] = 'required|string';
-        }
-
-        $validatedData = $request->validate($rules); // Almacena los datos validados
-
-        // Actualizar los datos del usuario
-        $user->name = $validatedData['name']; // Usa los datos validados
-        $user->email = $validatedData['email']; // Usa los datos validados
-
-        // Solo actualizamos la contraseña si fue validada y está presente
-        if (isset($validatedData['password'])) { // Verifica la contraseña en los datos validados
-            $user->password = bcrypt($validatedData['password']); // Usa Hash::make para Laravel moderno
-        }
-
-        // --- ESTE ES EL CAMBIO CRÍTICO ---
-        // Pasa los datos de roles validados reales, no las reglas de validación
-        $user->roles()->sync($validatedData['roles']);
-        // -----------------------------------
-
-        $user->save();
-
-        session()->flash('swal', [
-            'icon' => 'success',
-            'title' => 'El usuario: ' . $user->name . ' asociado al correo ' . $user->email,
-            'text' => 'Fue actualizado con éxito'
-        ]);
-
-        // Redirige a la vista de índice con los memos actualizados
-        return redirect()->route('admin.users.index');
-    
+    // Lógica condicional para la contraseña
+    if ($request->filled('password') || $request->filled('password_confirmation')) {
+        $rules['password'] = 'required|string|min:8|confirmed';
+        $rules['password_confirmation'] = 'required|string';
     }
+
+    $validatedData = $request->validate($rules); 
+
+    // Actualizar los datos del usuario
+    $user->name = $validatedData['name']; 
+    $user->email = $validatedData['email']; 
+
+    // Solo actualizamos la contraseña si fue validada y está presente
+    if (isset($validatedData['password'])) { 
+        // Usamos Hash::make (vía la función/helper de Laravel) que es el estándar moderno
+        $user->password = transform($validatedData['password'], fn ($p) => bcrypt($p)); 
+    }
+
+    $user->save();
+
+    // --- CORRECCIÓN AQUÍ ---
+    // Envolvemos el ID del rol único en un array [] para que sync() no falle
+    $user->roles()->sync([$validatedData['roles']]);
+    // -----------------------
+
+    session()->flash('swal', [
+        'icon' => 'success',
+        'title' => 'El usuario: ' . $user->name . ' asociado al correo ' . $user->email,
+        'text' => 'Fue actualizado con éxito'
+    ]);
+
+    return redirect()->route('admin.users.index');
+}
+
 
     /**
      * Remove the specified resource from storage.
