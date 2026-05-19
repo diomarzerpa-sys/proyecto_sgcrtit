@@ -277,37 +277,41 @@ class ClassificationSeeder extends Seeder
         // --- Fusionar todos los datos en un solo array ---
         $data = array_merge($mainData, $toolData, $componentData);
 
-        // Check for duplicates before inserting
-        if ($this->hasDuplicates($data)) {
-            echo "Warning: Duplicate entries found in the classification data. Skipping insertion.\n";
-            // Puedes añadir más lógica de manejo de duplicados aquí si es necesario
-            return;
-        }
-
-        // Insertar todos los datos de una sola vez
-        Classification::firstOrCreate($data);
-    }
-
-    /**
-     * Checks if an array of associative arrays contains duplicate entries based on all key-value pairs.
-     *
-     * @param array $data The array of associative arrays to check.
-     * @return bool True if duplicates are found, false otherwise.
-     */
-    protected function hasDuplicates(array $data): bool
-    {
+        // 1. Limpiar duplicados internos del código en memoria de forma ultra rápida
+        $uniqueData = [];
         $seen = [];
         foreach ($data as $item) {
-            // Convert the item (associative array) to a unique string representation
-            ksort($item); // Sort keys to ensure consistent string representation
-            $itemString = json_encode($item);
-
-            if (isset($seen[$itemString])) {
-                // Found a duplicate
-                return true;
+            ksort($item);
+            $hash = json_encode($item);
+            if (!isset($seen[$hash])) {
+                $seen[$hash] = true;
+                $uniqueData[] = $item;
             }
-            $seen[$itemString] = true;
         }
-        return false;
-    }
-}
+
+        // 2. Insertar de manera controlada e idempotente en la base de datos
+        // Usamos un contador para reportar feedback en la consola de comandos
+        $insertedCount = 0;
+        foreach ($uniqueData as $row) {
+            // Buscamos si ya existe exactamente esta combinación en la base de datos
+            $exists = Classification::where('type', $row['type'])
+                ->where('name', $row['name'])
+                ->where('brand', $row['brand'])
+                ->where('model', $row['model'])
+                ->exists();
+
+            // Si no existe, lo creamos
+            if (!$exists) {
+                Classification::create($row);
+                $insertedCount++;
+            }
+        }
+
+        // Mostrar reporte final en los logs
+        if ($insertedCount > 0) {
+            $this->command->info("Se insertaron {$insertedCount} nuevas clasificaciones con éxito.");
+        } else {
+            $this->command->comment("No hubo clasificaciones nuevas que insertar. Todo al día.");
+        }
+    } // Cierre del método run()
+} // Cierre de la clase
