@@ -10,7 +10,7 @@
         @endcan
     </div>
 
-    <livewire:NationalAssettable />
+    <livewire:NationalAssetTable />
 
 
     @push('js')
