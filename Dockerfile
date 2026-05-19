@@ -54,11 +54,21 @@ RUN npm run build
 # 8. Permisos correctos para la escritura de logs y cachés
 RUN chown -R www-data:www-data /var/www/html && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 9. Script de arranque dinámico optimizado para Render
+# =========================================================
+# 9. Script de arranque dinámico optimizado para Render (CORREGIDO)
+# =========================================================
 RUN echo '#!/bin/sh\n\
+echo "=== EJECUTANDO MIGRACIONES ==="\n\
 php artisan migrate --force\n\
+\n\
+echo "=== EJECUTANDO SEEDERS (POBLANDO TABLAS) ==="\n\
+php artisan db:seed --force\n\
+\n\
+echo "=== CONFIGURANDO PUERTOS DE APACHE ==="\n\
 sed -i "s/Listen 80/Listen ${PORT}/g" /etc/apache2/ports.conf\n\
 sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/g" /etc/apache2/sites-available/*.conf\n\
+\n\
+echo "=== INICIANDO APACHE ==="\n\
 apache2-foreground' > /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
