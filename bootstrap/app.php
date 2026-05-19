@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->trustProxies(at: '*'); // Confía en todas las cabeceras de Render
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
