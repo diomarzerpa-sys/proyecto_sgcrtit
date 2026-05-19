@@ -15,8 +15,8 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $role0 = Role::firstOrCreate(['name' => 'Admin']);
-        $role1 = Role::create(['name' => 'Coord']);
-        $role2 = Role::create(['name' => 'Normal']);
+        $role1 = Role::firstOrCreate(['name' => 'Coord']);
+        $role2 = Role::firstOrCreate(['name' => 'Normal']);
 
         Permission::create(['name' => 'dashboard'])->syncRoles([$role0, $role1, $role2]);
 
