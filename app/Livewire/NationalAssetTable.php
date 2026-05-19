@@ -70,7 +70,7 @@ final class NationalAssetTable extends PowerGridComponent
          }
 
          // Apply the role-based filtering based on the Staff model
-         switch ($userRoleName) {
+         /*switch ($userRoleName) {
              case 'Admin':
                  // Admins see all national assets. No additional WHERE clause needed.
                  break;
@@ -96,7 +96,7 @@ final class NationalAssetTable extends PowerGridComponent
                  $query->whereRaw('1 = 0');
                  break;
          }
-
+    */
          return $query;
     }
 
