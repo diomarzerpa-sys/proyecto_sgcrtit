@@ -14,6 +14,10 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        // CRUCIAL PARA DOCKER/RENDER: Desactivar y limpiar el caché de permisos temporalmente
+        // Esto evita bloqueos internos al ejecutar asignaciones masivas de roles.
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         $role0 = Role::firstOrCreate(['name' => 'Admin']);
         $role1 = Role::firstOrCreate(['name' => 'Coord']);
         $role2 = Role::firstOrCreate(['name' => 'Normal']);
@@ -41,7 +45,7 @@ class RoleSeeder extends Seeder
 
         Permission::firstOrCreate(['name' => 'admin.national_assets.index'])->syncRoles([$role0, $role1, $role2]);
         Permission::firstOrCreate(['name' => 'admin.national_assets.create'])->syncRoles([$role0]);
-        Permission::firstOrCreate(['name' => 'admin.national_assets.edit'])->syncRoles([$role0,]);
+        Permission::firstOrCreate(['name' => 'admin.national_assets.edit'])->syncRoles([$role0]);
         Permission::firstOrCreate(['name' => 'admin.national_assets.show'])->syncRoles([$role0, $role1, $role2]);
         Permission::firstOrCreate(['name' => 'admin.national_assets.destroy'])->syncRoles([$role0]);
 
@@ -55,14 +59,13 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'admin.tools.edit'])->syncRoles([$role0, $role1]);
         Permission::firstOrCreate(['name' => 'admin.tools.destroy'])->syncRoles([$role0]);
 
-        //Permisos del area para departamentos
         Permission::firstOrCreate(['name' => 'admin.departments.index'])->syncRoles([$role0]);
         Permission::firstOrCreate(['name' => 'admin.departments.create'])->syncRoles([$role0]);
         Permission::firstOrCreate(['name' => 'admin.departments.edit'])->syncRoles([$role0]);
         Permission::firstOrCreate(['name' => 'admin.departments.destroy'])->syncRoles([$role0]);
 
         Permission::firstOrCreate(['name' => 'admin.categories.index'])->syncRoles([$role0, $role1]);
-        Permission::firstOrCreate(['name' => 'admin.categories.create'])->syncRoles([$role0, $role1,]);
+        Permission::firstOrCreate(['name' => 'admin.categories.create'])->syncRoles([$role0, $role1]);
         Permission::firstOrCreate(['name' => 'admin.categories.edit'])->syncRoles([$role0, $role1]);
         Permission::firstOrCreate(['name' => 'admin.categories.destroy'])->syncRoles([$role0]);
 
@@ -80,5 +83,8 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'admin.users.create'])->syncRoles([$role0]);
         Permission::firstOrCreate(['name' => 'admin.users.edit'])->syncRoles([$role0]);
         Permission::firstOrCreate(['name' => 'admin.users.destroy'])->syncRoles([$role0]);
+
+        // Volver a registrar el caché de permisos una vez finalizado el proceso
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }
