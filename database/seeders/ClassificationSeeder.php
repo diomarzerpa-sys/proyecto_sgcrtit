@@ -285,7 +285,7 @@ class ClassificationSeeder extends Seeder
         }
 
         // Insertar todos los datos de una sola vez
-        Classification::insert($data);
+        Classification::firstOrCreate($data);
     }
 
     /**
