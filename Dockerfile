@@ -42,5 +42,13 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 EXPOSE 80
 
-# Ejecutar migraciones automáticamente antes de encender el servidor Apache
-CMD php artisan migrate --force && php artisan db:seed --force && apache2-foreground
+# 8. CORRECCIÓN PARA RENDER: Creamos un script de arranque limpio
+# Esto ejecuta la migración rápido y deja a Apache respondiendo de inmediato en el puerto 80
+RUN echo '#!/bin/sh\n\
+php artisan migrate --force\n\
+apache2-foreground' > /usr/local/bin/start.sh
+
+RUN chmod +x /usr/local/bin/start.sh
+
+# Ejecutar el script diseñado para producción
+CMD ["/usr/local/bin/start.sh"]
