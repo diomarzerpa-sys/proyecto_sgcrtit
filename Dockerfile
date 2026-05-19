@@ -55,22 +55,13 @@ RUN npm run build
 RUN chown -R www-data:www-data /var/www/html && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # =========================================================
-# 9. Script de arranque dinámico optimizado para Render (CORREGIDO)
+# 9. Script de arranque dinámico optimizado para Render
 # =========================================================
-RUN echo '#!/bin/sh\n\
-echo "=== EJECUTANDO MIGRACIONES ==="\n\
-php artisan migrate --force\n\
-\n\
-echo "=== EJECUTANDO SEEDERS (POBLANDO TABLAS) ==="\n\
-php artisan db:seed --force\n\
-\n\
-echo "=== CONFIGURANDO PUERTOS DE APACHE ==="\n\
-sed -i "s/Listen 80/Listen ${PORT}/g" /etc/apache2/ports.conf\n\
-sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/g" /etc/apache2/sites-available/*.conf\n\
-\n\
-echo "=== INICIANDO APACHE ==="\n\
-apache2-foreground' > /usr/local/bin/start.sh
+# Copiamos el archivo start.sh que creamos en la raíz
+COPY start.sh /usr/local/bin/start.sh
 
+# Le asignamos permisos de ejecución
 RUN chmod +x /usr/local/bin/start.sh
 
+# Ejecutamos el script al iniciar el contenedor
 CMD ["/usr/local/bin/start.sh"]
