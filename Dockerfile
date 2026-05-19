@@ -57,11 +57,16 @@ RUN chown -R www-data:www-data /var/www/html && chmod -R 775 /var/www/html/stora
 # =========================================================
 # 9. Script de arranque dinámico optimizado para Render
 # =========================================================
-# Copiamos el archivo start.sh que creamos en la raíz
-COPY start.sh /usr/local/bin/start.sh
+RUN echo '#!/bin/sh' > /usr/local/bin/start.sh \
+    && echo 'set -e' >> /usr/local/bin/start.sh \
+    && echo 'echo "=== 1. EJECUTANDO MIGRACIONES REQUERIDAS ==="' >> /usr/local/bin/start.sh \
+    && echo 'php artisan migrate --force' >> /usr/local/bin/start.sh \
+    && echo 'echo "=== 2. CONFIGURANDO PUERTOS DE APACHE ==="' >> /usr/local/bin/start.sh \
+    && echo 'sed -i "s/Listen 80/Listen ${PORT}/g" /etc/apache2/ports.conf' >> /usr/local/bin/start.sh \
+    && echo 'sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/g" /etc/apache2/sites-available/*.conf' >> /usr/local/bin/start.sh \
+    && echo 'echo "=== 3. INICIANDO APACHE ==="' >> /usr/local/bin/start.sh \
+    && echo 'exec apache2-foreground' >> /usr/local/bin/start.sh
 
-# Le asignamos permisos de ejecución
 RUN chmod +x /usr/local/bin/start.sh
 
-# Ejecutamos el script al iniciar el contenedor
 CMD ["/usr/local/bin/start.sh"]
