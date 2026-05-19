@@ -19,36 +19,32 @@ RUN apt-get update && apt-get install -y \
 # 3. Habilitar reescritura de rutas en Apache
 RUN a2enmod rewrite
 
-# 4. Apuntar la raíz de Apache a la carpeta /public de Laravel
+# 4. Apuntar la raíz de Apache a la carpeta /public de Laravel y cambiar el puerto al valor dinámico de Render
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+RUN sed -ri -e 's!Listen 80!Listen ${PORT}!g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
 # 5. Descargar Composer oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Permite ejecutar Composer sin restricciones como superusuario dentro de Docker
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
 WORKDIR /var/www/html
 COPY . .
 
-# 6. SOLUCIÓN CRUCIAL: Añadimos --no-scripts para congelar la ejecución de Laravel
-# hasta que el servidor encienda con sus variables de entorno reales.
+# 6. Instalar dependencias congelando scripts pesados
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
 
-# 7. Permisos requeridos para las carpetas internas de escritura
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# 7. Permisos requeridos para que Laravel no arroje error 500 al escribir archivos
+RUN chown -R www-data:www-data /var/www/html && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
-
-# 8. CORRECCIÓN PARA RENDER: Creamos un script de arranque limpio
-# Esto ejecuta la migración rápido y deja a Apache respondiendo de inmediato en el puerto 80
+# 8. Script de arranque optimizado para los puertos dinámicos de Render
 RUN echo '#!/bin/sh\n\
 php artisan migrate --force\n\
+sed -i "s/Listen 80/Listen ${PORT}/g" /etc/apache2/ports.conf\n\
+sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/g" /etc/apache2/sites-available/*.conf\n\
 apache2-foreground' > /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
 
-# Ejecutar el script diseñado para producción
 CMD ["/usr/local/bin/start.sh"]
