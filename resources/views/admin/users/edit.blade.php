@@ -20,14 +20,16 @@
 
             <flux:input label="Confirme Contraseña:" type="password" name="password_confirmation" value="{{old('password_confirmation')}}" placeholder="Escriba la contraseña nuevamente del trabajador." />
 
+            <!-- REEMPLAZA TU BLOQUE DE ROLES POR ESTE -->
             <flux:select label='Roles dentro del sistema' name="roles" placeholder="Elija los roles por favor...">
-                @foreach ($roles as $role) {{-- Asegúrate de que $allRoles contenga todos los roles disponibles --}}
+                @foreach ($roles as $role)
                     <flux:select.option value="{{ $role->id }}"
-                        :selected="in_array($role->id, old('roles', $user->roles->pluck('id')->toArray()))">
+                        :selected="$role->id == old('roles', $user->roles->first()?->id)">
                         {{ $role->name }}
                     </flux:select.option>
                 @endforeach
             </flux:select>
+
 
             <div class="flex justify-end mt-4">
                 <flux:button variant="primary" type="submit">Modificar</flux:button>
