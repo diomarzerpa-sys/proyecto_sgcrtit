@@ -13,17 +13,20 @@ Route::redirect('/', 'login')->name('home');
 
 Route::get('/inicializar-sistema-bienes', function () {
     try {
-        // Ejecuta el seeder general de manera asíncrona sin bloquear la petición HTTP
-        Artisan::queue('db:seed', ['--force' => true]);
+        // Ejecuta DIRECTAMENTE solo el seeder de clasificaciones
+        Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'ClassificationSeeder',
+            '--force' => true
+        ]);
         
         return response()->json([
             'status' => 'success',
-            'message' => 'El sembrado de datos ha sido encolado y se está ejecutando en segundo plano en el servidor. Revisa DBeaver en unos instantes.'
+            'message' => '¡Tablas de clasificaciones pobladas exitosamente en tiempo real!'
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Falló al intentar encolar los seeders: ' . $e->getMessage()
+            'message' => $e->getMessage()
         ], 500);
     }
 });
